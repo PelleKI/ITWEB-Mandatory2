@@ -10,27 +10,29 @@ var router = express.Router();
 
 export class WorkoutController extends APIControllerBase {
     private repo: Collection;
-    private modelValidator: ModelValidatorService;
 
-    public constructor(private DBUrl: string, private WorkoutProgramCollectionName: string) {
+    public constructor(private DBUrl: string, private WorkoutProgramCollectionName: string, private modelValidator: ModelValidatorService) {
         super();
     }
 
     public ConnectToDb(): Promise<void> {
         return MongoClient.connect(this.DBUrl).then((db) => {
             this.repo = db.collection(this.WorkoutProgramCollectionName)
-            this.modelValidator = new ModelValidatorService();
         });
     }
 
     public GetAll(req, res): void {
         this.SetHeaders(res);
-        console.log("get all");
         this.ConnectToDb()
             .then(() => this.repo.find({}).toArray())
             .then(data => {
-                console.log(data);
-                res.send(JSON.stringify(data));
+                if(data != null) {
+                    res.status(200);
+                    res.send(JSON.stringify(data));   
+                }
+                else {
+                    this.SendDataBaseError(res);
+                }
             })
 
     }
@@ -42,9 +44,13 @@ export class WorkoutController extends APIControllerBase {
         this.ConnectToDb()
             .then(() => this.repo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
-                console.log(data);
-                res.send(JSON.stringify(data));
-                //this.SendNotFoundError(res);
+                if(data != null) {
+                    res.status(200);
+                    res.send(JSON.stringify(data));   
+                }
+                else {
+                    this.SendDataBaseError(res);
+                }
             })
     }
 
@@ -55,11 +61,11 @@ export class WorkoutController extends APIControllerBase {
             .then(() => this.repo.insertOne(new WorkoutProgram()))
             .then((result) => {
                 if (result.result.ok == 1) {
+                    res.status(200);
                     res.send(JSON.stringify({ id: result.insertedId, data: result.ops.find(() => true) }));
                 }
                 else {
-                    // error
-                    //this.SendNotFoundError(res);
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -76,7 +82,7 @@ export class WorkoutController extends APIControllerBase {
         if (!this.modelValidator.CheckPutData(obj)) {
             this.SendWrongDataError(res);
             return;
-        }
+        }       
 
         this.SetHeaders(res);
         let id = req.params['id'];
@@ -85,10 +91,11 @@ export class WorkoutController extends APIControllerBase {
             .then(() => this.repo.findOneAndReplace({ '_id': new ObjectID(id) }, obj))
             .then((result) => {
                 if (result.ok == 1) {
+                    res.status(200);
                     res.send(JSON.stringify({ id: id, data: obj }));
                 }
                 else {
-                    // error
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -101,7 +108,7 @@ export class WorkoutController extends APIControllerBase {
         }
 
         // Guards against wrong data
-        let obj = req.body as WorkoutProgram;
+        let obj = req.body;
         if (!this.modelValidator.CheckPatchData(obj)) {
             this.SendWrongDataError(res);
             return;
@@ -110,14 +117,30 @@ export class WorkoutController extends APIControllerBase {
         this.SetHeaders(res);
         let id = req.params['id'];
 
+        // Make sure we don't overwrite every single one of the 
+        // exercises of the data is incomplete
+        if(obj.ExerciseList != undefined) {
+            for(let i = 0; i < obj.ExerciseList.length; ++i) {
+                for(let field in obj.ExerciseList[i])
+                {
+                    obj["ExerciseList." + i + "." + field] = obj.ExerciseList[i][field];                    
+                }
+            }
+        }
+        // Make sure the update command doesn't contain exerciselist
+        // as mongo doesn't know how to use this when doing a partial
+        // edit
+        delete obj.ExerciseList;
+
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndUpdate({ '_id': new ObjectID(id) }, obj))
+            .then(() => this.repo.findOneAndUpdate({ '_id': new ObjectID(id) }, {$set: obj}, { returnOriginal: false }))
             .then((result) => {
                 if (result.ok == 1) {
+                    res.status(200);
                     res.send(JSON.stringify(result.value));
                 }
                 else {
-                    // error
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -131,10 +154,11 @@ export class WorkoutController extends APIControllerBase {
             .then(() => this.repo.findOneAndDelete({ '_id': new ObjectID(id) }))
             .then((result) => {
                 if (result.ok == 1) {
+                    res.status(200);
                     res.send();
                 }
                 else {
-                    // error
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -147,8 +171,13 @@ export class WorkoutController extends APIControllerBase {
         this.ConnectToDb()
             .then(() => this.repo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
-                console.log(data.ExerciseList[index]);
-                res.send(JSON.stringify(data.ExerciseList[index]));
+                if(data != null && data.Exerciselist[index] != undefined) {
+                    res.status(200);
+                    res.send(JSON.stringify(data.ExerciseList[index]));
+                }
+                else {
+                    this.SendDataBaseError(res);
+                }
             });
     }
 
@@ -162,11 +191,11 @@ export class WorkoutController extends APIControllerBase {
             .then((result) => {
                 if (result.ok = 1) {
                     let index = result.value.ExerciseList.length - 1;
-                    console.log(result.value.ExerciseList[index]);
+                    res.status(200);
                     res.send(JSON.stringify(result.value.ExerciseList[index]));
                 }
                 else {
-                    // error
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -196,10 +225,11 @@ export class WorkoutController extends APIControllerBase {
             .then(() => this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate))
             .then((result) => {
                 if (result.ok == 1) {
+                    res.status(200);
                     res.send(JSON.stringify(result.value.ExerciseList[index]));
                 }
                 else {
-                    // error
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -228,13 +258,14 @@ export class WorkoutController extends APIControllerBase {
         }
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate))
+            .then(() => this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate, { returnOriginal: false }))
             .then((result) => {
                 if (result.ok == 1) {
+                    res.status(200);
                     res.send(JSON.stringify(result.value.ExerciseList[index]));
                 }
                 else {
-                    // error
+                    this.SendDataBaseError(res);
                 }
             });
     }
@@ -257,20 +288,26 @@ export class WorkoutController extends APIControllerBase {
                 this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, obj)
                     .then((result) => {
                         if (result.ok == 1) {
+                            res.status(200);
                             res.send();
                         }
                         else {
-                            // error
+                            this.SendDataBaseError(res);
                         }
                     });
             });
+    }
+
+    private SendDataBaseError(res) {
+        res.status(500);
+        res.send(JSON.stringify({ err: 'Database error' }));
     }
 }
 
 
 function CreateController(): WorkoutController {
     let conf = CurrentConfig();
-    return new WorkoutController(conf.DBConnectionString, conf.WorkoutProgramsCollection);
+    return new WorkoutController(conf.DBConnectionString, conf.WorkoutProgramsCollection, new ModelValidatorService());
 }
 let WorkoutControllerRoutes = router;
 
