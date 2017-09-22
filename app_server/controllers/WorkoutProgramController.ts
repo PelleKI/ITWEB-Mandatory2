@@ -1,4 +1,4 @@
-import { ModelValidatorService } from '../services/ModelValidatorService';
+import { WorkoutProgramValidator } from '../services/WorkoutProgramValidator';
 import { APIControllerBase } from './APIControllerBase';
 import { WorkoutProgram } from '../models/WorkoutProgram';
 import { Exercise } from '../models/Exercise';
@@ -34,7 +34,6 @@ export class WorkoutController extends APIControllerBase {
                     this.SendDataBaseError(res);
                 }
             })
-
     }
 
     public Get(req, res): void {
@@ -51,7 +50,7 @@ export class WorkoutController extends APIControllerBase {
                 else {
                     this.SendDataBaseError(res);
                 }
-            })
+            });
     }
 
     public Post(req, res): void {
@@ -149,13 +148,29 @@ export class WorkoutController extends APIControllerBase {
         this.SetHeaders(res);
         let id = req.params['id'];
 
-
         this.ConnectToDb()
             .then(() => this.repo.findOneAndDelete({ '_id': new ObjectID(id) }))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
                     res.send();
+                }
+                else {
+                    this.SendDataBaseError(res);
+                }
+            });
+    }
+
+    public GetAllExercise(req, res): void {
+        this.SetHeaders(res);
+        let id = req.params['id'];
+
+        this.ConnectToDb()
+            .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
+            .then((data) => {
+                if(data != null) {
+                    res.status(200);
+                    res.send(JSON.stringify(data.ExerciseList));   
                 }
                 else {
                     this.SendDataBaseError(res);
@@ -171,7 +186,7 @@ export class WorkoutController extends APIControllerBase {
         this.ConnectToDb()
             .then(() => this.repo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
-                if(data != null && data.Exerciselist[index] != undefined) {
+                if(data != null && data.ExerciseList[index] != undefined) {
                     res.status(200);
                     res.send(JSON.stringify(data.ExerciseList[index]));
                 }
@@ -275,8 +290,6 @@ export class WorkoutController extends APIControllerBase {
         let id = req.params['id'];
         let index = req.params['index'];
 
-        let fieldsToUpdate = {};
-
         this.ConnectToDb()
             .then(() => this.repo.findOne({ _id: new ObjectID(id) }))
             .then((data) => {
@@ -314,7 +327,7 @@ let WorkoutControllerRoutes = router;
 // Root routes
 WorkoutControllerRoutes.get('/', (req, res) => {
     CreateController().GetAll(req, res);
-})
+});
 WorkoutControllerRoutes.get('/:id', (req, res) => {
     CreateController().Get(req, res);
 });
@@ -332,6 +345,10 @@ WorkoutControllerRoutes.delete('/:id', (req, res) => {
 });
 
 // Exercise routes
+
+WorkoutControllerRoutes.get('/:id/exercise', (req, res) => {
+    CreateController().GetAllExercise(req, res);
+});
 WorkoutControllerRoutes.get('/:id/exercise/:index', (req, res) => {
     CreateController().GetExercise(req, res);
 });

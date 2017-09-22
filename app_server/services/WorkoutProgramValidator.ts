@@ -1,7 +1,7 @@
 import { Exercise } from "../models/Exercise";
 import { WorkoutProgram } from "../models/WorkoutProgram";
 
-export class ModelValidatorService {
+export class WorkoutProgramValidator {
     public CheckPutExerciseData(data: Exercise): boolean {
         let validity = true;        
         let exercise = new Exercise();
