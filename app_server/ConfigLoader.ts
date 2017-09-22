@@ -3,11 +3,13 @@ import * as fs from 'fs';
 export interface ConfigSettings {
     DBConnectionString: string;
     WorkoutProgramsCollection: string;
+    ExerciseLogCollection: string;
 }
 
 const defaultConf: ConfigSettings = {
     DBConnectionString: "hurhdurh",
-    WorkoutProgramsCollection: "WorkoutPrograms"
+    WorkoutProgramsCollection: "WorkoutPrograms",
+    ExerciseLogCollection: "ExerciseLogs"
 };
 
 let curConf: ConfigSettings = null;
@@ -23,18 +25,19 @@ export function LoadConfig(): Promise<ConfigSettings> {
         fs.readFile(path, (err, data) => {
             if (err) {
                 if (err.code == "ENOENT") {
-                    fs.writeFile(path, JSON.stringify(defaultConf), (err) => {
-                        if (err) {
-                            throw err;
-                        }
-                        else {
-                            console.log("File doesn't exist, creating default");
-                            curConf = defaultConf;
-                            let connectionString = process.env.CONNECTION_STRING != undefined ? process.env.CONNECTION_STRING : curConf.DBConnectionString;
-                            curConf.DBConnectionString = connectionString;
-                            return resolve(CurrentConfig());
-                        }
-                    });
+                    return WriteConfFile(path, defaultConf)
+                        .then(err => {
+                            if (err) {
+                                throw err;
+                            }
+                            else {
+                                console.log("File doesn't exist, creating default");
+                                curConf = defaultConf;
+                                let connectionString = process.env.CONNECTION_STRING != undefined ? process.env.CONNECTION_STRING : curConf.DBConnectionString;
+                                curConf.DBConnectionString = connectionString;
+                                return CurrentConfig();
+                            }
+                        });
                 }
                 else {
                     throw err;
@@ -43,11 +46,12 @@ export function LoadConfig(): Promise<ConfigSettings> {
             else {
                 console.log("Config file exists, use it");
                 let conf = JSON.parse(data.toString()) as ConfigSettings;
-                if(!ConfContainsAllFields(conf)){
+                if (!ConfContainsAllFields(conf)) {
                     console.log("Current config missing fields, adding");
                     FillConfWithDefaultValues(conf);
                 }
                 curConf = conf;
+                WriteConfFile(path, curConf);
                 return resolve(CurrentConfig());
             }
         });
@@ -55,8 +59,8 @@ export function LoadConfig(): Promise<ConfigSettings> {
 }
 
 function ConfContainsAllFields(conf: ConfigSettings) {
-    for(let field in defaultConf) {
-        if(conf[field] == undefined) {
+    for (let field in defaultConf) {
+        if (conf[field] == undefined) {
             return false;
         }
     }
@@ -64,9 +68,22 @@ function ConfContainsAllFields(conf: ConfigSettings) {
 }
 
 function FillConfWithDefaultValues(conf: ConfigSettings) {
-    for(let field in defaultConf) {
-        if(conf[field] == undefined) {
+    for (let field in defaultConf) {
+        if (conf[field] == undefined) {
             conf[field] = defaultConf[field];
         }
     }
+}
+
+function WriteConfFile(path: string, conf: ConfigSettings): Promise<any> {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(path, JSON.stringify(conf, null, 4), (err) => {
+            if (err) {
+                return reject(err);
+            }
+            else {
+                return resolve(null);
+            }
+        });
+    });
 }
