@@ -2,6 +2,7 @@ import { WorkoutProgramValidator } from '../services/WorkoutProgramValidator';
 import { APIControllerBase } from './APIControllerBase';
 import { WorkoutProgram } from '../models/WorkoutProgram';
 import { Exercise } from '../models/Exercise';
+import { ExerciseLog } from '../models/ExerciseLog';
 import { MongoClient, Db, Collection, Cursor, ObjectID } from 'mongodb';
 import { CurrentConfig } from '../ConfigLoader';
 
@@ -9,22 +10,24 @@ var express = require('express');
 var router = express.Router();
 
 export class WorkoutController extends APIControllerBase {
-    private repo: Collection;
+    private workoutProgramRepo: Collection<WorkoutProgram>;
+    private exerciseLogRepo: Collection<ExerciseLog>;
 
-    public constructor(private DBUrl: string, private WorkoutProgramCollectionName: string, private modelValidator: ModelValidatorService) {
+    public constructor(private dbUrl: string, private workoutProgramCollectionName: string, private exerciseLogCollectionName: string, private modelValidator: WorkoutProgramValidator) {
         super();
     }
 
     public ConnectToDb(): Promise<void> {
-        return MongoClient.connect(this.DBUrl).then((db) => {
-            this.repo = db.collection(this.WorkoutProgramCollectionName)
+        return MongoClient.connect(this.dbUrl).then((db) => {
+            this.workoutProgramRepo = db.collection(this.workoutProgramCollectionName);
+            this.exerciseLogRepo = db.collection(this.exerciseLogCollectionName);
         });
     }
 
     public GetAll(req, res): void {
         this.SetHeaders(res);
         this.ConnectToDb()
-            .then(() => this.repo.find({}).toArray())
+            .then(() => this.workoutProgramRepo.find({}).toArray())
             .then(data => {
                 if(data != null) {
                     res.status(200);
@@ -41,7 +44,7 @@ export class WorkoutController extends APIControllerBase {
         let id = req.params['id'];
 
         this.ConnectToDb()
-            .then(() => this.repo.findOne({ '_id': new ObjectID(id) }))
+            .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
                 if(data != null) {
                     res.status(200);
@@ -57,7 +60,7 @@ export class WorkoutController extends APIControllerBase {
         this.SetHeaders(res);
 
         this.ConnectToDb()
-            .then(() => this.repo.insertOne(new WorkoutProgram()))
+            .then(() => this.workoutProgramRepo.insertOne(new WorkoutProgram()))
             .then((result) => {
                 if (result.result.ok == 1) {
                     res.status(200);
@@ -87,7 +90,7 @@ export class WorkoutController extends APIControllerBase {
         let id = req.params['id'];
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndReplace({ '_id': new ObjectID(id) }, obj))
+            .then(() => this.workoutProgramRepo.findOneAndReplace({ '_id': new ObjectID(id) }, obj))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
@@ -132,7 +135,7 @@ export class WorkoutController extends APIControllerBase {
         delete obj.ExerciseList;
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndUpdate({ '_id': new ObjectID(id) }, {$set: obj}, { returnOriginal: false }))
+            .then(() => this.workoutProgramRepo.findOneAndUpdate({ '_id': new ObjectID(id) }, {$set: obj}, { returnOriginal: false }))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
@@ -149,7 +152,7 @@ export class WorkoutController extends APIControllerBase {
         let id = req.params['id'];
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndDelete({ '_id': new ObjectID(id) }))
+            .then(() => this.workoutProgramRepo.findOneAndDelete({ '_id': new ObjectID(id) }))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
@@ -184,7 +187,7 @@ export class WorkoutController extends APIControllerBase {
         let index = req.params['index'];
 
         this.ConnectToDb()
-            .then(() => this.repo.findOne({ '_id': new ObjectID(id) }))
+            .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
                 if(data != null && data.ExerciseList[index] != undefined) {
                     res.status(200);
@@ -201,7 +204,7 @@ export class WorkoutController extends APIControllerBase {
         let id = req.params['id'];
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndUpdate({ '_id': new ObjectID(id) },
+            .then(() => this.workoutProgramRepo.findOneAndUpdate({ '_id': new ObjectID(id) },
                 { $push: { ExerciseList: new Exercise() } }))
             .then((result) => {
                 if (result.ok = 1) {
@@ -237,7 +240,7 @@ export class WorkoutController extends APIControllerBase {
         fieldsToUpdate['$set']['ExerciseList.' + index] = obj;
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate))
+            .then(() => this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
@@ -273,7 +276,7 @@ export class WorkoutController extends APIControllerBase {
         }
 
         this.ConnectToDb()
-            .then(() => this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate, { returnOriginal: false }))
+            .then(() => this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate, { returnOriginal: false }))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
@@ -291,14 +294,14 @@ export class WorkoutController extends APIControllerBase {
         let index = req.params['index'];
 
         this.ConnectToDb()
-            .then(() => this.repo.findOne({ _id: new ObjectID(id) }))
+            .then(() => this.workoutProgramRepo.findOne({ _id: new ObjectID(id) }))
             .then((data) => {
                 let obj = data as WorkoutProgram;
                 obj.ExerciseList.splice(index, 1);
                 return obj;
             })
             .then((obj) => {
-                this.repo.findOneAndUpdate({ _id: new ObjectID(id) }, obj)
+                this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, obj)
                     .then((result) => {
                         if (result.ok == 1) {
                             res.status(200);
@@ -311,6 +314,44 @@ export class WorkoutController extends APIControllerBase {
             });
     }
 
+    public GetLogs(req, res): void {
+        this.SetHeaders(res);
+        let id = req.params['id'];
+
+        this.ConnectToDb()
+            .then(() => this.exerciseLogRepo.find({ WorkoutProgramId: new ObjectID(id) }).sort({TimeStamp: -1}).toArray())
+            .then((data) => {
+                if(data != null) {
+                    res.status(200);
+                    res.send(JSON.stringify(data));
+                }
+                else {
+                    this.SendDataBaseError(res);
+                }
+            });
+    }
+
+    public PostLog(req, res) {
+        this.SetHeaders(res);
+        let id = req.params['id'];
+
+        let newLog = new ExerciseLog();
+        newLog.WorkoutProgramId = new ObjectID(id);
+        newLog.TimeStamp = new Date();
+
+        this.ConnectToDb()
+            .then(() => this.exerciseLogRepo.insertOne(newLog))
+            .then((result) => {
+                if (result.result.ok == 1) {
+                    res.status(200);
+                    res.send(JSON.stringify({ id: result.insertedId, data: result.ops.find(() => true) }));
+                }
+                else {
+                    this.SendDataBaseError(res);
+                }
+            });
+    }
+
     private SendDataBaseError(res) {
         res.status(500);
         res.send(JSON.stringify({ err: 'Database error' }));
@@ -320,7 +361,7 @@ export class WorkoutController extends APIControllerBase {
 
 function CreateController(): WorkoutController {
     let conf = CurrentConfig();
-    return new WorkoutController(conf.DBConnectionString, conf.WorkoutProgramsCollection, new ModelValidatorService());
+    return new WorkoutController(conf.DBConnectionString, conf.WorkoutProgramsCollection, conf.ExerciseLogCollection, new WorkoutProgramValidator());
 }
 let WorkoutControllerRoutes = router;
 
@@ -342,6 +383,14 @@ WorkoutControllerRoutes.patch('/:id', (req, res) => {
 });
 WorkoutControllerRoutes.delete('/:id', (req, res) => {
     CreateController().Delete(req, res);
+});
+
+// Exercise logs
+WorkoutControllerRoutes.get('/:id/logs', (req, res) => {
+    CreateController().GetLogs(req, res);
+});
+WorkoutControllerRoutes.post('/:id/logs', (req, res) => {
+    CreateController().PostLog(req, res);
 });
 
 // Exercise routes
