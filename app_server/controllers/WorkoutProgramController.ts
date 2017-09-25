@@ -205,7 +205,8 @@ export class WorkoutController extends APIControllerBase {
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOneAndUpdate({ '_id': new ObjectID(id) },
-                { $push: { ExerciseList: new Exercise() } }))
+                { $push: { ExerciseList: new Exercise() } }, 
+                { returnOriginal: false }))
             .then((result) => {
                 if (result.ok = 1) {
                     let index = result.value.ExerciseList.length - 1;
@@ -240,7 +241,7 @@ export class WorkoutController extends APIControllerBase {
         fieldsToUpdate['$set']['ExerciseList.' + index] = obj;
 
         this.ConnectToDb()
-            .then(() => this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate))
+            .then(() => this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate, { returnOriginal: false }))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
