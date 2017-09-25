@@ -37,6 +37,8 @@ export function LoadConfig(): Promise<ConfigSettings> {
                                 curConf.DBConnectionString = connectionString;
                                 return CurrentConfig();
                             }
+                        }).then((conf) => {
+                            resolve(conf);
                         });
                 }
                 else {
