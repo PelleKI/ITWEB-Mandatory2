@@ -4,12 +4,13 @@ import * as favicon from 'serve-favicon';
 import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
-
+import * as cors from 'cors';
 import * as routes from './routes';
 
 import { ConfigSettings, LoadConfig } from './ConfigLoader';
 
 let app = express();
+app.use(cors());
 
 /*Clears database and adds initial data*/
 LoadConfig().then((val) => {
