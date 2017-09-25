@@ -4,13 +4,11 @@ import * as favicon from 'serve-favicon';
 import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
 import * as routes from './routes';
 
 import { ConfigSettings, LoadConfig } from './ConfigLoader';
 
 let app = express();
-app.use(cors());
 
 /*Clears database and adds initial data*/
 LoadConfig().then((val) => {
@@ -25,6 +23,9 @@ LoadConfig().then((val) => {
   app.use(express.static(path.join(__dirname, 'public')));
 
   app.use('/', routes);
+  app.get('/derp', (req, res) => {
+    res.send("hurh");
+  });
 
   // catch 404 and forward to error handler
   app.use((req, res, next) => {
