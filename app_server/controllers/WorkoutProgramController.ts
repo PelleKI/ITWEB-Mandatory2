@@ -183,15 +183,21 @@ export class WorkoutController extends APIControllerBase {
 
     public GetExercise(req, res): void {
         this.SetHeaders(res);
-        let id = req.params['id'];
+        let id: ObjectID = req.params['id'];
         let index = req.params['index'];
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
-                if(data != null && data.ExerciseList[index] != undefined) {
+                let exerciseToFind: Exercise = undefined;
+                data.ExerciseList.forEach((x) => {
+                    if (id.equals(x._id)) {
+                        exerciseToFind = x;
+                    }
+                })
+                if(data != null && exerciseToFind != undefined) {
                     res.status(200);
-                    res.send(JSON.stringify(data.ExerciseList[index]));
+                    res.send(JSON.stringify(exerciseToFind));
                 }
                 else {
                     this.SendDataBaseError(res);
@@ -211,7 +217,10 @@ export class WorkoutController extends APIControllerBase {
                 if (result.ok = 1) {
                     let index = exerciseId;
                     res.status(200);
-                    res.send(JSON.stringify({location: req.get('host') + req.originalUrl + index}));
+                    res.send(JSON.stringify({
+                        location: req.get('host') + req.originalUrl + '/' + index,
+                        id: index
+                    }));
                 }
                 else {
                     this.SendDataBaseError(res);
