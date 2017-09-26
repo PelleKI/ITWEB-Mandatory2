@@ -202,15 +202,16 @@ export class WorkoutController extends APIControllerBase {
     public PostExercise(req, res): void {
         this.SetHeaders(res);
         let id = req.params['id'];
+        let exerciseId = new ObjectID();
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOneAndUpdate({ '_id': new ObjectID(id) },
-                { $push: { ExerciseList: new Exercise() } }))
+                { $push: { ExerciseList: new Exercise(exerciseId) } }))
             .then((result) => {
                 if (result.ok = 1) {
-                    let index = result.value.ExerciseList.length - 1;
+                    let index = exerciseId;
                     res.status(200);
-                    res.send(JSON.stringify({location: req.get('host') + req.originalUrl + "/" + index}));
+                    res.send(JSON.stringify({location: req.get('host') + req.originalUrl + index}));
                 }
                 else {
                     this.SendDataBaseError(res);
