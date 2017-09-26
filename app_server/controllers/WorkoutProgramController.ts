@@ -191,7 +191,7 @@ export class WorkoutController extends APIControllerBase {
             .then((data) => {
                 let exerciseToFind: Exercise = undefined;
                 data.ExerciseList.forEach((x) => {
-                    if (id.equals(x._id)) {
+                    if (x._id.equals(id)) {
                         exerciseToFind = x;
                     }
                 })
