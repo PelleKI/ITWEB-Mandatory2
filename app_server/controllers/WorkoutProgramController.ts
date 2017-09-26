@@ -184,14 +184,14 @@ export class WorkoutController extends APIControllerBase {
     public GetExercise(req, res): void {
         this.SetHeaders(res);
         let id: ObjectID = req.params['id'];
-        let index = req.params['index'];
+        let index: ObjectID = req.params['index'];
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
                 let exerciseToFind: Exercise = undefined;
                 data.ExerciseList.forEach((x) => {
-                    if (x._id.equals(id)) {
+                    if (x._id.equals(index)) {
                         exerciseToFind = x;
                     }
                 })
