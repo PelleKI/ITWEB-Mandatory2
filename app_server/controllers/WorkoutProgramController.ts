@@ -183,15 +183,15 @@ export class WorkoutController extends APIControllerBase {
 
     public GetExercise(req, res): void {
         this.SetHeaders(res);
-        let id: ObjectID = req.params['id'];
-        let index: ObjectID = req.params['index'];
+        let id: ObjectID = new ObjectID(req.params['id']);
+        let index: ObjectID =  new ObjectID(req.params['index']);
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
                 let exerciseToFind: Exercise = undefined;
                 data.ExerciseList.forEach((x) => {
-                    if (x._id.equals(index)) {
+                    if (index.equals(x._id)) {
                         exerciseToFind = x;
                     }
                 })
@@ -243,13 +243,20 @@ export class WorkoutController extends APIControllerBase {
         }
 
         this.SetHeaders(res);
-        let id: ObjectID = req.params['id'];
-        let index: ObjectID = req.params['index'];
+        let id: ObjectID = new ObjectID(req.params['id']);
+        let index: ObjectID = new ObjectID(req.params['index']);
+
+        let fieldsToUpdate = {};
+       // fieldsToUpdate['$set']['ExerciseList.' + index] = obj;
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOneAndUpdate(
-                { _id: new ObjectID(id), "ExerciseList._id": new ObjectID(index) },
-                { $set: { "ExerciseList.$": obj }}
+                { _id: id, "ExerciseList._id": index },
+                { $set: { "ExerciseList.$.ExerciseName": obj.ExerciseName,
+                          "ExerciseList.$.Description": obj.Description,
+                          "ExerciseList.$.RepsOrTime": obj.RepsOrTime,
+                          "ExerciseList.$.Sets": obj.Sets,
+                }}
             ))
             .then((result) => {
                 if (result.ok == 1) {
