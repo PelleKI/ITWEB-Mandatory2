@@ -243,18 +243,18 @@ export class WorkoutController extends APIControllerBase {
         }
 
         this.SetHeaders(res);
-        let id = req.params['id'];
-        let index = req.params['index'];
-
-        let fieldsToUpdate = {};
-        fieldsToUpdate['$set']['ExerciseList.' + index] = obj;
+        let id: ObjectID = req.params['id'];
+        let index: ObjectID = req.params['index'];
 
         this.ConnectToDb()
-            .then(() => this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate))
+            .then(() => this.workoutProgramRepo.findOneAndUpdate(
+                { _id: new ObjectID(id), "ExerciseList._id": new ObjectID(index) },
+                { $set: { "ExerciseList.$": obj }}
+            ))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
-                    res.send(JSON.stringify(result.value.ExerciseList[index]));
+                    res.send(JSON.stringify(obj));
                 }
                 else {
                     this.SendDataBaseError(res);
