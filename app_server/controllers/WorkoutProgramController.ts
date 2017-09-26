@@ -215,12 +215,8 @@ export class WorkoutController extends APIControllerBase {
                 { $push: { ExerciseList: new Exercise(exerciseId) } }))
             .then((result) => {
                 if (result.ok = 1) {
-                    let index = exerciseId;
                     res.status(200);
-                    res.send(JSON.stringify({
-                        location: req.get('host') + req.originalUrl + '/' + index,
-                        id: index
-                    }));
+                    res.send(JSON.stringify(result.value));
                 }
                 else {
                     this.SendDataBaseError(res);
@@ -261,7 +257,7 @@ export class WorkoutController extends APIControllerBase {
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
-                    res.send(JSON.stringify(obj));
+                    res.send(JSON.stringify(result.value));
                 }
                 else {
                     this.SendDataBaseError(res);
