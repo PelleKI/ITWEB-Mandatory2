@@ -184,14 +184,14 @@ export class WorkoutController extends APIControllerBase {
     public GetExercise(req, res): void {
         this.SetHeaders(res);
         let id: ObjectID = new ObjectID(req.params['id']);
-        let index: ObjectID =  new ObjectID(req.params['index']);
+        let exerciseId: ObjectID =  new ObjectID(req.params['exerciseid']);
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOne({ '_id': new ObjectID(id) }))
             .then((data) => {
                 let exerciseToFind: Exercise = undefined;
                 data.ExerciseList.forEach((x) => {
-                    if (index.equals(x._id)) {
+                    if (exerciseId.equals(x._id)) {
                         exerciseToFind = x;
                     }
                 })
@@ -240,24 +240,21 @@ export class WorkoutController extends APIControllerBase {
 
         this.SetHeaders(res);
         let id: ObjectID = new ObjectID(req.params['id']);
-        let index: ObjectID = new ObjectID(req.params['index']);
-
-        let fieldsToUpdate = {};
-       // fieldsToUpdate['$set']['ExerciseList.' + index] = obj;
+        let exerciseId: ObjectID = new ObjectID(req.params['exerciseid']);
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOneAndUpdate(
-                { _id: id, "ExerciseList._id": index },
+                { _id: id, "ExerciseList._id": exerciseId },
                 { $set: { "ExerciseList.$.ExerciseName": obj.ExerciseName,
                           "ExerciseList.$.Description": obj.Description,
                           "ExerciseList.$.RepsOrTime": obj.RepsOrTime,
                           "ExerciseList.$.Sets": obj.Sets,
-                }}
+                }}, { returnOriginal: false }
             ))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
-                    res.send(JSON.stringify(result.value));
+                    res.send(JSON.stringify(result.value.ExerciseList.find(obj => exerciseId.equals(obj._id))));
                 }
                 else {
                     this.SendDataBaseError(res);
@@ -280,20 +277,22 @@ export class WorkoutController extends APIControllerBase {
         }
 
         this.SetHeaders(res);
-        let id = req.params['id'];
-        let index = req.params['index'];
+        let id: ObjectID = new ObjectID(req.params['id']);
+        let exerciseId: ObjectID = new ObjectID(req.params['exerciseid']);
 
-        let fieldsToUpdate = {};
+        let fieldsToUpdate = { $set:{}};
         for (let field in obj) {
-            fieldsToUpdate['$set']['ExerciseList.' + index + '.' + field] = obj[field];
+            fieldsToUpdate['$set']['ExerciseList.$.' + field] = obj[field];
         }
-
+        
         this.ConnectToDb()
-            .then(() => this.workoutProgramRepo.findOneAndUpdate({ _id: new ObjectID(id) }, fieldsToUpdate, { returnOriginal: false }))
+            .then(() => this.workoutProgramRepo.findOneAndUpdate(
+                { _id: id, "ExerciseList._id": exerciseId }, 
+                fieldsToUpdate, { returnOriginal: false }))
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
-                    res.send(JSON.stringify(result.value.ExerciseList[index]));
+                    res.send(JSON.stringify(result.value.ExerciseList.find(obj => exerciseId.equals(obj._id))));
                 }
                 else {
                     this.SendDataBaseError(res);
@@ -411,19 +410,19 @@ WorkoutControllerRoutes.post('/:id/logs', (req, res) => {
 WorkoutControllerRoutes.get('/:id/exercise', (req, res) => {
     CreateController().GetAllExercise(req, res);
 });
-WorkoutControllerRoutes.get('/:id/exercise/:index', (req, res) => {
+WorkoutControllerRoutes.get('/:id/exercise/:exerciseid', (req, res) => {
     CreateController().GetExercise(req, res);
 });
 WorkoutControllerRoutes.post('/:id/exercise', (req, res) => {
     CreateController().PostExercise(req, res);
 });
-WorkoutControllerRoutes.put('/:id/exercise/:index', (req, res) => {
+WorkoutControllerRoutes.put('/:id/exercise/:exerciseid', (req, res) => {
     CreateController().PutExercise(req, res);
 });
-WorkoutControllerRoutes.patch('/:id/exercise/:index', (req, res) => {
+WorkoutControllerRoutes.patch('/:id/exercise/:exerciseid', (req, res) => {
     CreateController().PatchExercise(req, res);
 });
-WorkoutControllerRoutes.delete('/:id/exercise/:index', (req, res) => {
+WorkoutControllerRoutes.delete('/:id/exercise/:exerciseid', (req, res) => {
     CreateController().DeleteExercise(req, res);
 });
 
