@@ -63,7 +63,7 @@ export class WorkoutController extends APIControllerBase {
             .then(() => this.workoutProgramRepo.insertOne(new WorkoutProgram()))
             .then((result) => {
                 if (result.result.ok == 1) {
-                    res.status(200);
+                    res.status(201);
                     res.send(JSON.stringify({location: req.get('host') + req.originalUrl + "/" + result.insertedId}));
                 }
                 else {
@@ -156,7 +156,7 @@ export class WorkoutController extends APIControllerBase {
             .then((result) => {
                 if (result.ok == 1) {
                     res.status(200);
-                    res.send();
+                    res.send(JSON.stringify({}));
                 }
                 else {
                     this.SendDataBaseError(res);
@@ -215,7 +215,7 @@ export class WorkoutController extends APIControllerBase {
                 { $push: { ExerciseList: new Exercise(exerciseId) } }))
             .then((result) => {
                 if (result.ok = 1) {
-                    res.status(200);
+                    res.status(201);
                     res.send(JSON.stringify(result.value));
                 }
                 else {
@@ -318,7 +318,7 @@ export class WorkoutController extends APIControllerBase {
                     .then((result) => {
                         if (result.ok == 1) {
                             res.status(200);
-                            res.send();
+                            res.send(JSON.stringify({}));
                         }
                         else {
                             this.SendDataBaseError(res);
@@ -356,7 +356,7 @@ export class WorkoutController extends APIControllerBase {
             .then(() => this.exerciseLogRepo.insertOne(newLog))
             .then((result) => {
                 if (result.result.ok == 1) {
-                    res.status(200);
+                    res.status(201);
                     res.send(JSON.stringify({ id: result.insertedId, data: result.ops.find(() => true) }));
                 }
                 else {
