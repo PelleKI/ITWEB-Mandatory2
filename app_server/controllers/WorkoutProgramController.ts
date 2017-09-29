@@ -216,7 +216,7 @@ export class WorkoutController extends APIControllerBase {
             .then((result) => {
                 if (result.ok = 1) {
                     res.status(200);
-                    res.send(JSON.stringify(result.value));
+                    res.send(JSON.stringify( { id: exerciseId }));
                 }
                 else {
                     this.SendDataBaseError(res);
