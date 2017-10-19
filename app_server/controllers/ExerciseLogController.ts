@@ -3,6 +3,7 @@ import { APIControllerBase } from './APIControllerBase';
 import { ExerciseLog } from '../models/ExerciseLog';
 import { MongoClient, Db, Collection, Cursor, ObjectID } from 'mongodb';
 import { CurrentConfig } from '../ConfigLoader';
+import { AuthMiddleware } from '../services/Authentication';
 
 var express = require('express');
 var router = express.Router();
@@ -163,16 +164,16 @@ ExerciseLogControllerRoutes.get('/', (req, res) => {
 ExerciseLogControllerRoutes.get('/:id', (req, res) => {
     CreateController().Get(req, res);
 });
-ExerciseLogControllerRoutes.post('/', (req, res) => {
+ExerciseLogControllerRoutes.post('/', AuthMiddleware, (req, res) => {
     CreateController().Post(req, res);
 });
-ExerciseLogControllerRoutes.put('/:id', (req, res) => {
+ExerciseLogControllerRoutes.put('/:id', AuthMiddleware, (req, res) => {
     CreateController().Put(req, res);
 });
-ExerciseLogControllerRoutes.patch('/:id', (req, res) => {
+ExerciseLogControllerRoutes.patch('/:id', AuthMiddleware, (req, res) => {
     CreateController().Patch(req, res);
 });
-ExerciseLogControllerRoutes.delete('/:id', (req, res) => {
+ExerciseLogControllerRoutes.delete('/:id', AuthMiddleware, (req, res) => {
     CreateController().Delete(req, res);
 });
 

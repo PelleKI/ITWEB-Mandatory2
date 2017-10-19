@@ -6,8 +6,13 @@ export class WorkoutProgramValidator {
         let validity = true;        
         let exercise = new Exercise();
         for (let field in exercise) {
-            if (data[field] == undefined) {
+            if(field == "_id" && data[field] != undefined){
                 validity = false;
+                break;
+            }
+            else if (field != "_id" && data[field] == undefined) {
+                validity = false;
+                break;
             }
         }
         return validity;

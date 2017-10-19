@@ -1,15 +1,20 @@
 import * as fs from 'fs';
+import { randomBytes } from 'crypto';
 
 export interface ConfigSettings {
     DBConnectionString: string;
     WorkoutProgramsCollection: string;
     ExerciseLogCollection: string;
+    UserCollection: string;
+    AuthSecret: string;
 }
 
 const defaultConf: ConfigSettings = {
-    DBConnectionString: "hurhdurh",
+    DBConnectionString: "INVALID CONNECTIONSTRING",
     WorkoutProgramsCollection: "WorkoutPrograms",
-    ExerciseLogCollection: "ExerciseLogs"
+    ExerciseLogCollection: "ExerciseLogs",
+    UserCollection: "Users",
+    AuthSecret: randomBytes(20).toString('hex') // Not good, make sure you have a secret set
 };
 
 let curConf: ConfigSettings = null;
@@ -25,20 +30,20 @@ export function LoadConfig(): Promise<ConfigSettings> {
         fs.readFile(path, (err, data) => {
             if (err) {
                 if (err.code == "ENOENT") {
-                    return WriteConfFile(path, defaultConf)
+                    console.log("File doesn't exist, creating default");
+                    curConf = defaultConf;
+                    let connectionString = process.env.CONNECTION_STRING != undefined ? process.env.CONNECTION_STRING : curConf.DBConnectionString;
+                    curConf.DBConnectionString = connectionString;
+                    let authSecret = process.env.AUTH_SECRET != undefined ? process.env.AUTH_SECRET : curConf.AuthSecret;
+                    curConf.AuthSecret = authSecret;
+                    return WriteConfFile(path, curConf)
                         .then(err => {
                             if (err) {
                                 throw err;
                             }
                             else {
-                                console.log("File doesn't exist, creating default");
-                                curConf = defaultConf;
-                                let connectionString = process.env.CONNECTION_STRING != undefined ? process.env.CONNECTION_STRING : curConf.DBConnectionString;
-                                curConf.DBConnectionString = connectionString;
-                                return CurrentConfig();
+                                resolve(CurrentConfig());
                             }
-                        }).then((conf) => {
-                            resolve(conf);
                         });
                 }
                 else {
@@ -51,9 +56,9 @@ export function LoadConfig(): Promise<ConfigSettings> {
                 if (!ConfContainsAllFields(conf)) {
                     console.log("Current config missing fields, adding");
                     FillConfWithDefaultValues(conf);
+                    WriteConfFile(path, conf);
                 }
                 curConf = conf;
-                WriteConfFile(path, curConf);
                 return resolve(CurrentConfig());
             }
         });
