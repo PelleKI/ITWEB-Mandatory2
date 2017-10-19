@@ -5,6 +5,7 @@ import { Exercise } from '../models/Exercise';
 import { ExerciseLog } from '../models/ExerciseLog';
 import { MongoClient, Db, Collection, Cursor, ObjectID } from 'mongodb';
 import { CurrentConfig } from '../ConfigLoader';
+import { AuthMiddleware } from '../services/Authentication';
 
 var express = require('express');
 var router = express.Router();
@@ -384,16 +385,16 @@ WorkoutControllerRoutes.get('/', (req, res) => {
 WorkoutControllerRoutes.get('/:id', (req, res) => {
     CreateController().Get(req, res);
 });
-WorkoutControllerRoutes.post('/', (req, res) => {
+WorkoutControllerRoutes.post('/', AuthMiddleware, (req, res) => {
     CreateController().Post(req, res);
 });
-WorkoutControllerRoutes.put('/:id', (req, res) => {
+WorkoutControllerRoutes.put('/:id', AuthMiddleware, (req, res) => {
     CreateController().Put(req, res);
 });
-WorkoutControllerRoutes.patch('/:id', (req, res) => {
+WorkoutControllerRoutes.patch('/:id', AuthMiddleware, (req, res) => {
     CreateController().Patch(req, res);
 });
-WorkoutControllerRoutes.delete('/:id', (req, res) => {
+WorkoutControllerRoutes.delete('/:id', AuthMiddleware, (req, res) => {
     CreateController().Delete(req, res);
 });
 
@@ -401,7 +402,7 @@ WorkoutControllerRoutes.delete('/:id', (req, res) => {
 WorkoutControllerRoutes.get('/:id/logs', (req, res) => {
     CreateController().GetLogs(req, res);
 });
-WorkoutControllerRoutes.post('/:id/logs', (req, res) => {
+WorkoutControllerRoutes.post('/:id/logs', AuthMiddleware, (req, res) => {
     CreateController().PostLog(req, res);
 });
 
@@ -413,16 +414,16 @@ WorkoutControllerRoutes.get('/:id/exercise', (req, res) => {
 WorkoutControllerRoutes.get('/:id/exercise/:exerciseid', (req, res) => {
     CreateController().GetExercise(req, res);
 });
-WorkoutControllerRoutes.post('/:id/exercise', (req, res) => {
+WorkoutControllerRoutes.post('/:id/exercise', AuthMiddleware, (req, res) => {
     CreateController().PostExercise(req, res);
 });
-WorkoutControllerRoutes.put('/:id/exercise/:exerciseid', (req, res) => {
+WorkoutControllerRoutes.put('/:id/exercise/:exerciseid', AuthMiddleware, (req, res) => {
     CreateController().PutExercise(req, res);
 });
-WorkoutControllerRoutes.patch('/:id/exercise/:exerciseid', (req, res) => {
+WorkoutControllerRoutes.patch('/:id/exercise/:exerciseid', AuthMiddleware, (req, res) => {
     CreateController().PatchExercise(req, res);
 });
-WorkoutControllerRoutes.delete('/:id/exercise/:exerciseid', (req, res) => {
+WorkoutControllerRoutes.delete('/:id/exercise/:exerciseid', AuthMiddleware, (req, res) => {
     CreateController().DeleteExercise(req, res);
 });
 

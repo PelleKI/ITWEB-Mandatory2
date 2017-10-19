@@ -6,7 +6,7 @@ import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
 import * as routes from './routes';
 
-import { ConfigSettings, LoadConfig } from './ConfigLoader';
+import { ConfigSettings, LoadConfig} from './ConfigLoader';
 
 let app = express();
 
@@ -45,6 +45,4 @@ LoadConfig().then((val) => {
 
   console.log("App started on port: " + app.get('port'));
 });
-
-
 module.exports = app;
