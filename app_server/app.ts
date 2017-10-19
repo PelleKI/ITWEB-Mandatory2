@@ -42,7 +42,6 @@ LoadConfig().then((val) => {
     res.send("error");
     //res.render('error');
   });
-
   console.log("App started on port: " + app.get('port'));
 });
 module.exports = app;

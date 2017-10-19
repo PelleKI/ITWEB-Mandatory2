@@ -19,28 +19,25 @@ export class UserController extends APIControllerBase {
 
     public RegisterUser(req, res) {
         this.SetHeaders(res);        
-        let user = req.body as {userName, email, password};
-        
-        console.log(user);
-        
+        let user = req.body as { Username, Email, Password };
+
         // Thanks javascript
-        if (user.userName === null || user.userName === undefined ||
-            user.password === null || user.password === undefined ||
-            user.email === null || user.email === undefined) {
+        if (user.Username === null || user.Username === undefined ||
+            user.Password === null || user.Password === undefined ||
+            user.Email === null || user.Email === undefined) {
             this.SendWrongDataError(res);
         }
 
         let newUser = new User();
-
-        this.ConnectToDb().then(() => this.userRepo.findOne({ $or: [{ Name: user.userName }, { Email: user.email }] }))
+        this.ConnectToDb().then(() => this.userRepo.findOne({ $or: [{ Name: user.Username }, { Email: user.Email }] }))
             .then((data) => {
                 if (data != null) {
                     return;
                 }
                 else {
-                    let newUser = User.CreateNewUser(user.email, user.userName);
+                    let newUser = User.CreateNewUser(user.Email, user.Username);
                     newUser.Salt = randomBytes(24).toString('hex');
-                    newUser.HashedPassword = HashPassword(user.password, newUser.Salt);
+                    newUser.HashedPassword = HashPassword(user.Password, newUser.Salt);
                     return this.userRepo.insertOne(newUser);
                 }
             }).then((result) => {

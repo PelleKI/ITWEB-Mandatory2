@@ -35,7 +35,7 @@ export class JWT {
     }
 
     static CreateJWT(payload: any, secret: string) {
-        return new JWT({alg: "SHA256", typ: "JWT"}, payload, (token) => JWT.HmacSha256SigningFunction(token, secret));
+        return new JWT({alg: "HS256", typ: "JWT"}, payload, (token) => JWT.HmacSha256SigningFunction(token, secret));
     }
 
     // Figure out better function name

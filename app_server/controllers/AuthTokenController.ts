@@ -45,9 +45,11 @@ export class AuthController extends APIControllerBase {
 
                     // Construct claims
                     let claims = {
-                        userID: data._id,                // What we're gonna use to indentify the user
-                        exp: expirationDate / 1000,      // Expiration date, seconds since 1970, 1, 1, 0:00:00:000
-                        iat: Date.now(),                 // Issued at
+                        Username: data.Name,
+                        Email: data.Email,
+                        userID: data._id,                            // What we're gonna use to indentify the user
+                        exp: Math.floor(expirationDate / 1000),      // Expiration date, seconds since 1970, 1, 1, 0:00:00:000
+                        iat: Math.floor(Date.now() / 1000),          // Issued at
                     };
 
                     // Create the token
