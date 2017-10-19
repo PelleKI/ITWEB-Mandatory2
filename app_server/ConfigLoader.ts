@@ -34,7 +34,7 @@ export function LoadConfig(): Promise<ConfigSettings> {
                     curConf = defaultConf;
                     let connectionString = process.env.CONNECTION_STRING != undefined ? process.env.CONNECTION_STRING : curConf.DBConnectionString;
                     curConf.DBConnectionString = connectionString;
-                    let authSecret = process.env.AUTHSECRET != undefined ? process.env.AUTHSECRET : curConf.AuthSecret;
+                    let authSecret = process.env.AUTH_SECRET != undefined ? process.env.AUTH_SECRET : curConf.AuthSecret;
                     curConf.AuthSecret = authSecret;
                     return WriteConfFile(path, curConf)
                         .then(err => {
