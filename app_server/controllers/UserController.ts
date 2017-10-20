@@ -46,7 +46,7 @@ export class UserController extends APIControllerBase {
                 }
                 else if(result.result.ok == 1) {
                     res.status(200);
-                    res.send();
+                    res.send(JSON.stringify({}));
                 }
                 else {
                     this.SendDataBaseError(res);

@@ -51,7 +51,7 @@ export class AuthController extends APIControllerBase {
                         exp: Math.floor(expirationDate / 1000),      // Expiration date, seconds since 1970, 1, 1, 0:00:00:000
                         iat: Math.floor(Date.now() / 1000),          // Issued at
                     };
-
+                    
                     // Create the token
                     let token = JWT.CreateJWT(claims, CurrentConfig().AuthSecret);
 

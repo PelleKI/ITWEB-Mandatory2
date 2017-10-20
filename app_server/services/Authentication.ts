@@ -11,7 +11,7 @@ export function AuthMiddleware(req, res, next) {
 };
 
 export function VerifyToken(AuthorizationHeader: string): boolean {
-    if(AuthorizationHeader === undefined){
+    if (AuthorizationHeader === undefined) {
         throw new Error("No Authorization header");
     }
 

@@ -213,13 +213,13 @@ export class WorkoutController extends APIControllerBase {
 
         this.ConnectToDb()
             .then(() => this.workoutProgramRepo.findOneAndUpdate({ '_id': new ObjectID(id) },
-                { $push: { ExerciseList: new Exercise() } }, 
+                { $push: { ExerciseList: new Exercise(exerciseId) } }, 
                 { returnOriginal: false }))
             .then((result) => {
                 if (result.ok = 1) {
                     let index = result.value.ExerciseList.length - 1;
                     res.status(200);
-                    res.send(JSON.stringify({location: req.get('host') + req.originalUrl + index}));
+                    res.send(JSON.stringify({location: req.get('host') + req.originalUrl + result.value.ExerciseList[index]._id}));
                 }
                 else {
                     this.SendDataBaseError(res);
