@@ -13,7 +13,6 @@ let app = express();
 /*Clears database and adds initial data*/
 LoadConfig().then((val) => {
   console.log("Current environment: " + process.env.NODE_ENV);
-  console.log(val.AuthSecret);
 }).then(() => {
   // uncomment after placing your favicon in /public
   //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -37,8 +36,6 @@ LoadConfig().then((val) => {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    console.log(err.message);
 
     // render the error page
     res.status(err.status || 500);
