@@ -41,10 +41,14 @@ export function VerifyToken(AuthorizationHeader: string): boolean {
 
 export function VerifyHmacSha256(token: JWT, secret: string): boolean {
     let encodedHeader = token.GetEncodedHeader();
+    console.log(encodedHeader);
     let encodedPayload = token.GetEncodedPayload();
+    console.log(encodedPayload);
     let hmac = createHmac("SHA256", secret);
     hmac.update(encodedHeader + "." + encodedPayload);
     let calculatedSignature = Base64ToBase64url(hmac.digest('base64'));
+    console.log(calculatedSignature);    
+    console.log(calculatedSignature);        
     return calculatedSignature == token.GetSignature();
 }
 
