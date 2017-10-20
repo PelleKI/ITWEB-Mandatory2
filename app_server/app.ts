@@ -13,6 +13,7 @@ let app = express();
 /*Clears database and adds initial data*/
 LoadConfig().then((val) => {
   console.log("Current environment: " + process.env.NODE_ENV);
+  console.log(val.AuthSecret);
 }).then(() => {
   // uncomment after placing your favicon in /public
   //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
